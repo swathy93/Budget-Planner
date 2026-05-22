@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monthly Budget Planner 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f0efe9;
+    --border: rgba(0,0,0,0.1);
+    --border-md: rgba(0,0,0,0.18);
+    --text: #1a1917;
+    --text-secondary: #6b6a65;
+    --text-hint: #9e9d98;
+    --green: #0F6E56;
+    --green-bg: #E1F5EE;
+    --green-border: #1D9E75;
+    --red: #A32D2D;
+    --red-bg: #FCEBEB;
+    --red-border: #E24B4A;
+    --blue: #185FA5;
+    --amber: #854F0B;
+    --purple: #534AB7;
+    --purple-bg: #EEEDFE;
+    --purple-border: #7F77DD;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Header */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-icon {
+    width: 36px; height: 36px; border-radius: var(--radius-sm);
+    background: var(--purple-bg); display: flex; align-items: center; justify-content: center;
+    color: var(--purple); font-size: 18px;
+  }
+  .header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .header-sub { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+  .header-badge {
+    font-size: 11px; padding: 4px 10px; border-radius: 20px;
+    background: var(--purple-bg); color: var(--purple); font-weight: 500;
+    border: 1px solid var(--purple-border);
+  }
+
+  /* Layout */
+  .container { max-width: 900px; margin: 0 auto; padding: 1.5rem 1.5rem 3rem; }
+
+  /* Month tabs */
+  .month-tabs {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.5rem;
+    background: var(--surface); padding: 10px; border-radius: var(--radius-md);
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+  }
+  .mtab {
+    padding: 7px 15px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); font-size: 13px; font-weight: 500;
+    cursor: pointer; background: transparent; color: var(--text-secondary);
+    transition: all .15s; font-family: 'DM Sans', sans-serif;
+  }
+  .mtab:hover { background: var(--surface2); color: var(--text); }
+  .mtab.active { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+  .mtab.over { border-color: var(--red-border); color: var(--red); }
+  .mtab.active.over { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+
+  /* Panel */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Top metrics */
+  .top-metrics {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px; margin-bottom: 1.25rem;
+  }
+  .mc {
+    background: var(--surface); border-radius: var(--radius-md);
+    padding: .85rem 1rem; border: 1px solid var(--border); box-shadow: var(--shadow);
+  }
+  .mc-l { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
+  .mc-v { font-size: 17px; font-weight: 600; font-family: 'DM Mono', monospace; }
+  .mc-v.green { color: var(--green); }
+  .mc-v.red { color: var(--red); }
+  .mc-v.blue { color: var(--blue); }
+  .mc-v.amber { color: var(--amber); }
+  .mc-v.purple { color: var(--purple); }
+
+  /* Main grid */
+  .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media(max-width: 620px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* Cards */
+  .card {
+    background: var(--surface); border-radius: var(--radius-md);
+    border: 1px solid var(--border); padding: 1.1rem; box-shadow: var(--shadow);
+  }
+  .card + .card { margin-top: 14px; }
+  .card-title {
+    font-size: 10px; font-weight: 600; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: .07em; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .card-title i { font-size: 14px; }
+
+  /* Expense rows */
+  .erow {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .erow:last-child { border-bottom: none; }
+  .eleft { display: flex; align-items: center; gap: 7px; color: var(--text); }
+  .eicon { font-size: 15px; color: var(--text-hint); }
+  .eamt { font-weight: 600; color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; }
+  .eamt.zero { color: var(--text-hint); }
+  .tag {
+    font-size: 10px; padding: 1px 6px; border-radius: 4px;
+    margin-left: 4px; font-weight: 500;
+  }
+  .tag-once { background: #FAEEDA; color: #854F0B; }
+  .tag-gone { background: #EAF3DE; color: #3B6D11; }
+  .total-row {
+    display: flex; justify-content: space-between; padding: 8px 0 0;
+    margin-top: 4px; font-size: 13px; font-weight: 600;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Input rows */
+  .input-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; gap: 8px;
+  }
+  .input-row:last-of-type { margin-bottom: 0; }
+  .input-row label {
+    font-size: 13px; color: var(--text);
+    display: flex; align-items: center; gap: 6px; flex: 1;
+  }
+  .input-row input {
+    width: 100px; text-align: right; font-size: 13px; font-weight: 500;
+    padding: 6px 10px; border: 1px solid var(--border-md);
+    border-radius: var(--radius-sm); background: var(--surface2);
+    color: var(--text); font-family: 'DM Mono', monospace;
+    transition: border-color .15s;
+  }
+  .input-row input:focus { outline: none; border-color: var(--purple-border); background: var(--surface); }
+
+  /* Bar */
+  .bar-wrap { margin-top: 12px; }
+  .bar-meta {
+    font-size: 11px; color: var(--text-secondary);
+    display: flex; justify-content: space-between; margin-bottom: 4px;
+  }
+  .bar-meta strong { color: var(--text); }
+  .bar-bg { height: 8px; border-radius: 4px; background: var(--surface2); overflow: hidden; border: 1px solid var(--border); }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width .3s, background .3s; }
+
+  /* Result banner */
+  .result-banner {
+    margin-top: 12px; padding: 11px 14px; border-radius: var(--radius-sm);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .result-banner.good { background: var(--green-bg); border: 1px solid var(--green-border); }
+  .result-banner.warn { background: var(--red-bg); border: 1px solid var(--red-border); }
+  .rb-label { font-size: 12px; font-weight: 600; }
+  .rb-sub { font-size: 11px; margin-top: 2px; opacity: .8; }
+  .rb-amt { font-size: 17px; font-weight: 600; font-family: 'DM Mono', monospace; }
+  .good .rb-label, .good .rb-sub, .good .rb-amt { color: var(--green); }
+  .warn .rb-label, .warn .rb-sub, .warn .rb-amt { color: var(--red); }
+
+  /* Emergency fund */
+  .emg-card {
+    background: var(--surface); border-radius: var(--radius-md);
+    border: 1px solid var(--purple-border); padding: 1.1rem;
+    margin-top: 14px; box-shadow: var(--shadow);
+  }
+  .emg-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .emg-header i { font-size: 18px; color: var(--purple); }
+  .emg-title { font-size: 10px; font-weight: 600; color: var(--purple); text-transform: uppercase; letter-spacing: .07em; }
+  .emg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .emg-mc {
+    background: var(--purple-bg); border-radius: var(--radius-sm);
+    padding: .65rem .9rem; border: 1px solid var(--purple-border);
+  }
+  .emg-mc-l { font-size: 10px; color: #534AB7; margin-bottom: 3px; font-weight: 500; opacity: .8; }
+  .emg-mc-v { font-size: 15px; font-weight: 600; color: var(--purple); font-family: 'DM Mono', monospace; }
+  .emg-mc-v.red { color: var(--red); }
+  .emg-mc-v.green { color: var(--green); }
+  .emg-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 0; border-bottom: 1px solid rgba(83,74,183,0.12);
+    font-size: 13px;
+  }
+  .emg-row:last-child { border-bottom: none; }
+  .emg-row span:first-child { color: var(--text-secondary); }
+  .emg-row span:last-child { font-weight: 600; color: var(--purple); font-family: 'DM Mono', monospace; }
+  .emg-note {
+    font-size: 11px; color: #534AB7; opacity: .75;
+    margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid rgba(83,74,183,0.15);
+    display: flex; gap: 5px; align-items: flex-start;
+  }
+  .emg-note i { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+
+  /* Pie chart */
+  .pie-section { display: flex; flex-direction: column; gap: 8px; }
+  .pie-legend { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+  .pie-leg-row {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 12px; color: var(--text-secondary);
+  }
+  .pie-leg-sq { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+  .pie-leg-amt { font-weight: 600; color: var(--text); font-family: 'DM Mono', monospace; }
+
+  /* Footer */
+  .footer {
+    text-align: center; padding: 2rem 1rem;
+    font-size: 12px; color: var(--text-hint);
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 480px) {
+    .container { padding: 1rem; }
+    .header { padding: 1rem; }
+    .header h1 { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <div class="header-icon"><i class="ti ti-wallet"></i></div>
+    <div>
+      <h1>Monthly Budget Planner</h1>
+      <div class="header-sub">May – December 2026 &nbsp;·&nbsp; AED</div>
+    </div>
+  </div>
+  <div class="header-badge">8 months</div>
+</header>
+
+<div class="container">
+  <div class="month-tabs" id="tabs"></div>
+  <div id="panels"></div>
+</div>
+
+<footer class="footer">Budget planner · Personal finance tracker · AED · 2026</footer>
+
+<script>
+const SALARY = 4200;
+const OPENING = 4282;
+const SAFE_BUFFER = 500;
+const EMG_MONTHLY = 300;
+const MONTHS = ['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const fixedBase = { babysitting: 700, dance: 250, carpool: 350, nre: 800, parlour: 110 };
+
+function getFixed(m) {
+  const f = { ...fixedBase };
+  f.tabby = m <= 2 ? 214.97 : 0;
+  f.schoolbus = m === 2 ? 990 : 375;
+  return f;
+}
+function fixedSum(m) { return Object.values(getFixed(m)).reduce((a, b) => a + b, 0); }
+
+const vState = MONTHS.map(() => ({ food: 400, taxi: 150, misc: 0 }));
+const charts = {};
+
+function income(m) { return m === 0 ? 0 : SALARY; }
+
+function carryIn(m) {
+  if (m === 0) return OPENING;
+  const prev = m - 1;
+  const rem = carryIn(prev) + income(prev) - fixedSum(prev) - varSum(prev) - EMG_MONTHLY;
+  return Math.max(0, rem);
+}
+function varSum(m) { return vState[m].food + vState[m].taxi + vState[m].misc; }
+function totalAvail(m) { return carryIn(m) + income(m); }
+function allowedVar(m) { return Math.max(0, totalAvail(m) - fixedSum(m) - EMG_MONTHLY - SAFE_BUFFER); }
+function remaining(m) { return totalAvail(m) - fixedSum(m) - varSum(m) - EMG_MONTHLY; }
+
+const PIE_COLORS = ['#378ADD','#1D9E75','#D85A30','#BA7517','#7F77DD','#D4537E','#888780','#5DCAA5','#E24B4A'];
+
+function buildPie(m) {
+  const f = getFixed(m); const v = vState[m];
+  const all = [
+    ['Babysitting', f.babysitting], ['Dance class', f.dance], ['Car pool', f.carpool],
+    ['School bus', f.schoolbus], ['NRE transfer', f.nre], ['Parlour', f.parlour],
+    ...(f.tabby > 0 ? [['Tabby', f.tabby]] : []),
+    ['Food', v.food], ['Taxi', v.taxi],
+    ...(v.misc > 0 ? [['Misc', v.misc]] : []),
+    ['Emergency fund', EMG_MONTHLY]
+  ].filter(x => x[1] > 0);
+  return {
+    labels: all.map(x => x[0]),
+    data: all.map(x => Math.round(x[1])),
+    colors: PIE_COLORS.slice(0, all.length)
+  };
+}
+
+function fmt(n) { return 'AED ' + Math.round(n).toLocaleString(); }
+function fmtN(n) { return Math.round(n).toLocaleString(); }
+
+function renderPanel(m) {
+  const f = getFixed(m); const v = vState[m];
+  const ci = carryIn(m); const inc = income(m); const ta = totalAvail(m);
+  const fs = fixedSum(m); const vs = varSum(m);
+  const rem = remaining(m);
+  const av = allowedVar(m);
+  const usedPct = Math.min(100, Math.round((vs / av) * 100));
+  const barCol = usedPct > 90 ? '#E24B4A' : usedPct > 70 ? '#EF9F27' : '#1D9E75';
+  const isOver = rem < SAFE_BUFFER;
+  const emgTotal = (m + 1) * EMG_MONTHLY;
+
+  const fixedRows = [
+    { ic: 'ti-heart', lb: 'Babysitting', amt: f.babysitting },
+    { ic: 'ti-music', lb: 'Dance class', amt: f.dance },
+    { ic: 'ti-car', lb: 'Car pool', amt: f.carpool },
+    { ic: 'ti-bus', lb: 'School bus' + (m === 2 ? ' <span class="tag tag-once">Jul rate</span>' : ''), amt: f.schoolbus },
+    { ic: 'ti-building-bank', lb: 'NRE transfer', amt: f.nre },
+    { ic: 'ti-scissors', lb: 'Parlour', amt: f.parlour },
+    ...(f.tabby > 0 ? [{ ic: 'ti-credit-card', lb: 'Tabby <span class="tag tag-once">ends Jul</span>', amt: f.tabby }] : []),
+    ...(f.tabby === 0 ? [{ ic: 'ti-credit-card', lb: 'Tabby <span class="tag tag-gone">done</span>', amt: 0 }] : [])
+  ];
+
+  document.getElementById('panel-' + m).innerHTML = `
+  <div class="top-metrics">
+    <div class="mc"><p class="mc-l">Opening balance</p><p class="mc-v blue">${fmt(ci)}</p></div>
+    <div class="mc"><p class="mc-l">${m === 0 ? 'No salary (May)' : 'Salary'}</p><p class="mc-v ${m === 0 ? 'amber' : 'green'}">${m === 0 ? 'AED 0' : fmt(SALARY)}</p></div>
+    <div class="mc"><p class="mc-l">Total available</p><p class="mc-v blue">${fmt(ta)}</p></div>
+    <div class="mc"><p class="mc-l">Fixed expenses</p><p class="mc-v red">${fmt(fs)}</p></div>
+    <div class="mc"><p class="mc-l">Allowed variable</p><p class="mc-v amber">${fmt(av)}</p></div>
+    <div class="mc"><p class="mc-l">Balance after all</p><p class="mc-v ${isOver ? 'red' : 'green'}" id="rem-mc-${m}">${fmt(rem)}</p></div>
+  </div>
+
+  <div class="main-grid">
+    <div>
+      <div class="card">
+        <p class="card-title"><i class="ti ti-lock" aria-hidden="true"></i>Fixed expenses</p>
+        ${fixedRows.map(r => `
+        <div class="erow">
+          <div class="eleft"><i class="ti ${r.ic} eicon" aria-hidden="true"></i>${r.lb}</div>
+          <div class="eamt ${r.amt === 0 ? 'zero' : ''}">${r.amt > 0 ? fmtN(r.amt) : '—'}</div>
+        </div>`).join('')}
+        <div class="total-row"><span>Total fixed</span><span style="font-family:'DM Mono',monospace;">${fmtN(fs)}</span></div>
+      </div>
+
+      <div class="card">
+        <p class="card-title"><i class="ti ti-adjustments-horizontal" aria-hidden="true"></i>Variable expenses <span style="font-size:10px;font-weight:400;color:var(--text-hint);margin-left:4px;">editable</span></p>
+        <div class="input-row">
+          <label><i class="ti ti-tools-kitchen-2 eicon" aria-hidden="true"></i>Food / eating out</label>
+          <input type="number" id="food-${m}" value="${v.food}" min="0" step="10" onchange="upd(${m},'food',this.value)">
+        </div>
+        <div class="input-row">
+          <label><i class="ti ti-taxi eicon" aria-hidden="true"></i>Taxi trips</label>
+          <input type="number" id="taxi-${m}" value="${v.taxi}" min="0" step="10" onchange="upd(${m},'taxi',this.value)">
+        </div>
+        <div class="input-row">
+          <label><i class="ti ti-shopping-bag eicon" aria-hidden="true"></i>Misc / other</label>
+          <input type="number" id="misc-${m}" value="${v.misc}" min="0" step="10" onchange="upd(${m},'misc',this.value)">
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-meta">
+            <span>Used: <strong id="vt-${m}">${fmtN(vs)}</strong> / limit <strong>${fmtN(Math.round(av))}</strong></span>
+            <span id="vpct-${m}">${usedPct}%</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill" id="vbar-${m}" style="width:${usedPct}%;background:${barCol};"></div></div>
+        </div>
+        <div class="result-banner ${isOver ? 'warn' : 'good'}" id="banner-${m}">
+          <div>
+            <div class="rb-label" id="bl-${m}">${isOver ? 'Over budget' : 'Remaining balance'}</div>
+            <div class="rb-sub" id="bs-${m}">${isOver ? 'Reduce spending' : 'After all expenses + emergency'}</div>
+          </div>
+          <div class="rb-amt" id="rem-${m}">${fmt(rem)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pie-section">
+      <div class="card" style="height:100%;">
+        <p class="card-title"><i class="ti ti-chart-pie" aria-hidden="true"></i>Spending breakdown</p>
+        <div style="position:relative;width:100%;height:210px;">
+          <canvas id="pie-${m}" role="img" aria-label="Spending breakdown pie chart for ${MONTHS[m]} 2026"></canvas>
+        </div>
+        <div class="pie-legend" id="legend-${m}"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="emg-card">
+    <div class="emg-header">
+      <i class="ti ti-shield-check" aria-hidden="true"></i>
+      <p class="emg-title">Emergency fund tracker</p>
+    </div>
+    <div class="emg-grid">
+      <div class="emg-mc">
+        <p class="emg-mc-l">Monthly contribution</p>
+        <p class="emg-mc-v">${fmt(EMG_MONTHLY)}</p>
+      </div>
+      <div class="emg-mc">
+        <p class="emg-mc-l">Fund by end of ${MONTHS[m]}</p>
+        <p class="emg-mc-v">${fmt(emgTotal)}</p>
+      </div>
+      <div class="emg-mc">
+        <p class="emg-mc-l">Fixed months covered</p>
+        <p class="emg-mc-v">${(emgTotal / fs).toFixed(1)}x</p>
+      </div>
+      <div class="emg-mc">
+        <p class="emg-mc-l">Balance after set-aside</p>
+        <p class="emg-mc-v ${isOver ? 'red' : 'green'}" id="aem-${m}">${fmt(rem)}</p>
+      </div>
+    </div>
+    <div class="emg-row">
+      <span>This month's set-aside</span>
+      <span>${fmt(EMG_MONTHLY)}</span>
+    </div>
+    <div class="emg-row">
+      <span>Cumulative fund (May–${MONTHS[m]})</span>
+      <span>${fmt(emgTotal)}</span>
+    </div>
+    <div class="emg-row">
+      <span>Spendable balance after set-aside</span>
+      <span id="spend-${m}">${fmt(rem)}</span>
+    </div>
+    <p class="emg-note">
+      <i class="ti ti-info-circle" aria-hidden="true"></i>
+      Target: 3–6 months of fixed expenses (AED ${fmtN(fs * 3)}–${fmtN(fs * 6)}). At AED ${EMG_MONTHLY}/month you reach 3-month cover around ${MONTHS[Math.min(7, m + Math.max(0, Math.ceil((fs * 3 - emgTotal) / EMG_MONTHLY)))] || 'Dec'} 2026.
+    </p>
+  </div>
+  `;
+
+  drawPie(m);
+}
+
+function drawPie(m) {
+  const { labels, data, colors } = buildPie(m);
+  if (charts[m]) charts[m].destroy();
+  const ctx = document.getElementById('pie-' + m);
+  if (!ctx) return;
+  charts[m] = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#ffffff' }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (c) => ' AED ' + c.parsed.toLocaleString() + ' (' + Math.round(c.parsed / c.dataset.data.reduce((a, b) => a + b, 0) * 100) + '%)'
+          }
+        }
+      }
+    }
+  });
+  const leg = document.getElementById('legend-' + m);
+  const tot = data.reduce((a, b) => a + b, 0);
+  leg.innerHTML = labels.map((l, i) => `
+    <div class="pie-leg-row">
+      <div class="pie-leg-sq" style="background:${colors[i]};"></div>
+      <span style="flex:1;">${l}</span>
+      <span class="pie-leg-amt">AED ${data[i].toLocaleString()} <span style="color:var(--text-hint);font-weight:400;">(${Math.round(data[i] / tot * 100)}%)</span></span>
+    </div>`).join('');
+}
+
+function upd(m, key, val) {
+  vState[m][key] = Math.max(0, parseFloat(val) || 0);
+  const vs = varSum(m);
+  const av = allowedVar(m);
+  const rem = remaining(m);
+  const usedPct = Math.min(100, Math.round((vs / av) * 100));
+  const barCol = usedPct > 90 ? '#E24B4A' : usedPct > 70 ? '#EF9F27' : '#1D9E75';
+  const isOver = rem < SAFE_BUFFER;
+  document.getElementById('vt-' + m).textContent = fmtN(vs);
+  document.getElementById('vpct-' + m).textContent = usedPct + '%';
+  const bar = document.getElementById('vbar-' + m);
+  bar.style.width = usedPct + '%';
+  bar.style.background = barCol;
+  const bn = document.getElementById('banner-' + m);
+  bn.className = 'result-banner ' + (isOver ? 'warn' : 'good');
+  document.getElementById('bl-' + m).textContent = isOver ? 'Over budget' : 'Remaining balance';
+  document.getElementById('bs-' + m).textContent = isOver ? 'Reduce spending' : 'After all expenses + emergency';
+  document.getElementById('rem-' + m).textContent = fmt(rem);
+  const mc = document.getElementById('rem-mc-' + m);
+  if (mc) { mc.className = 'mc-v ' + (isOver ? 'red' : 'green'); mc.textContent = fmt(rem); }
+  const sp = document.getElementById('spend-' + m);
+  if (sp) sp.textContent = fmt(rem);
+  const ae = document.getElementById('aem-' + m);
+  if (ae) { ae.textContent = fmt(rem); ae.className = 'emg-mc-v ' + (isOver ? 'red' : 'green'); }
+  drawPie(m);
+  updateTabs();
+}
+
+function updateTabs() {
+  MONTHS.forEach((_, i) => {
+    const t = document.getElementById('tab-' + i);
+    if (!t) return;
+    const r = remaining(i);
+    const isActive = t.classList.contains('active');
+    t.className = 'mtab' + (isActive ? ' active' : '') + (r < SAFE_BUFFER ? ' over' : '');
+  });
+}
+
+function switchMonth(i) {
+  document.querySelectorAll('.mtab').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+  document.getElementById('tab-' + i).classList.add('active');
+  document.getElementById('panel-' + i).classList.add('active');
+  renderPanel(i);
+  updateTabs();
+  document.getElementById('tab-' + i).classList.add('active');
+}
+
+const tabsEl = document.getElementById('tabs');
+const panelsEl = document.getElementById('panels');
+
+MONTHS.forEach((mn, i) => {
+  const t = document.createElement('button');
+  t.className = 'mtab' + (i === 0 ? ' active' : '');
+  t.id = 'tab-' + i;
+  t.textContent = mn + " '26";
+  t.onclick = () => switchMonth(i);
+  tabsEl.appendChild(t);
+
+  const p = document.createElement('div');
+  p.className = 'panel' + (i === 0 ? ' active' : '');
+  p.id = 'panel-' + i;
+  panelsEl.appendChild(p);
+});
+
+renderPanel(0);
+updateTabs();
+</script>
+</body>
+</html>
