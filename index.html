@@ -398,34 +398,62 @@ async function loadFromSheet() {
 }
 
 async function saveToSheet(mIdx) {
+
   const mn = MONTHS[mIdx];
   const v = vState[mIdx];
+
   if (DEMO_MODE) {
-    sheetData[mn] = { food: v.food, taxi: v.taxi, misc: v.misc, savedAt: new Date().toISOString() };
+    sheetData[mn] = {
+      food: v.food,
+      taxi: v.taxi,
+      misc: v.misc,
+      savedAt: new Date().toISOString()
+    };
     return true;
   }
+
   setSyncBadge('syncing', 'Saving…');
+
   try {
-  const res = await fetch(SCRIPT_URL, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    month: mn,
-    food: v.food,
-    taxi: v.taxi,
-    misc: v.misc
-  })
-});
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error);
+
+    const formData = new FormData();
+
+    formData.append('month', mn);
+    formData.append('food', v.food);
+    formData.append('taxi', v.taxi);
+    formData.append('misc', v.misc);
+
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData
+    });
+
+    const text = await res.text();
+
+    const json = JSON.parse(text);
+
+    if (!json.ok) {
+      throw new Error(json.error || 'Unknown error');
+    }
+
     sheetData = json.data || {};
+
     setSyncBadge('synced', 'Saved ✓');
-    setTimeout(() => setSyncBadge('synced', 'Synced'), 2000);
+
+    setTimeout(() => {
+      setSyncBadge('synced', 'Synced');
+    }, 2000);
+
     return true;
+
   } catch (e) {
+
+    console.error(e);
+
+    alert(e);
+
     setSyncBadge('error', 'Save failed');
+
     return false;
   }
 }
