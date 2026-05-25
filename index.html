@@ -373,26 +373,31 @@ function setSyncBadge(state, text) {
 
 async function loadFromSheet() {
   setSyncBadge('syncing', 'Loading…');
+
   try {
+
     const res = await fetch(SCRIPT_URL, { method: 'GET' });
+
     const json = await res.json();
+
     if (!json.ok) throw new Error(json.error);
-    sheetData = json.data || {};
-    // Merge sheet data into vState
-    MONTHS.forEach((mn, i) => {
-      if (sheetData[mn]) {
-        vState[i].food = sheetData[mn].food;
-        vState[i].taxi = sheetData[mn].taxi;
-        vState[i].misc = sheetData[mn].misc;
-      }
-    });
+
+    // PASTE NEW CODE HERE
+
     setSyncBadge('synced', 'Synced');
+
     const activeIdx = getActiveMonthIdx();
+
     renderPanel(activeIdx);
+
     updateTabs();
+
   } catch (e) {
+
     setSyncBadge('error', 'Sheet error');
+
     console.error(e);
+
     updateTabs();
   }
 }
