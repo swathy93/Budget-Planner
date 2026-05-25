@@ -441,7 +441,28 @@ async function saveToSheet(mIdx) {
       throw new Error(json.error || 'Unknown error');
     }
 
-    sheetData = json.data || {};
+    sheetData = {};
+
+const rows = json.data || [];
+
+rows.forEach(row => {
+
+  const month = row.month;
+
+  if (!sheetData[month]) {
+
+    sheetData[month] = {
+      food: 0,
+      taxi: 0,
+      misc: 0,
+      savedAt: row.savedAt
+    };
+  }
+
+  sheetData[month].food += Number(row.food) || 0;
+  sheetData[month].taxi += Number(row.taxi) || 0;
+  sheetData[month].misc += Number(row.misc) || 0;
+});
 
     setSyncBadge('synced', 'Saved ✓');
 
